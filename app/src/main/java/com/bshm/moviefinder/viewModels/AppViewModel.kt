@@ -1,13 +1,13 @@
 package com.bshm.moviefinder.viewModels
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bshm.moviefinder.data.Movie
 import com.bshm.moviefinder.data.MovieListResponse
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,7 +63,8 @@ class AppViewModel : ViewModel() {
             try {
                 movieList.clear()
                 val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.toString())
-                val urlBuilder = StringBuilder("https://api.themoviedb.org/3/search/movie?api_key=$api_key")
+                val urlBuilder =
+                    StringBuilder("https://api.themoviedb.org/3/search/movie?api_key=$api_key")
                 urlBuilder.append("&language=$language")
                 urlBuilder.append("&query=$encodedQuery")
                 urlBuilder.append("&include_adult=$includeAdult")
@@ -81,79 +82,6 @@ class AppViewModel : ViewModel() {
                 withContext(Dispatchers.Main) { onResult(true) }
             } catch (_: Exception) {
                 withContext(Dispatchers.Main) { onResult(false) }
-            }
-        }
-    }
-
-    @Composable
-    fun SearchBarWithFilters(
-        onSearch: (
-            query: String,
-            includeAdult: Boolean,
-            language: String,
-            year: String,
-            primaryReleaseYear: String,
-            page: Int,
-            region: String
-        ) -> Unit
-    ) {
-        var query by remember { mutableStateOf("") }
-        var includeAdult by remember { mutableStateOf(false) }
-        var language by remember { mutableStateOf("en-US") }
-        var expandedLang by remember { mutableStateOf(false) }
-        val languages = listOf("en-US", "es-ES", "fr-FR")
-        var year by remember { mutableStateOf("") }
-        var primaryReleaseYear by remember { mutableStateOf("") }
-        var page by remember { mutableStateOf("1") }
-        var region by remember { mutableStateOf("") }
-        var expandedRegion by remember { mutableStateOf(false) }
-        val regions = listOf("US", "ES", "FR")
-
-        Column {
-            TextField(value = query, onValueChange = { query = it }, label = { Text("Buscar") })
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Incluir adultos")
-                Checkbox(checked = includeAdult, onCheckedChange = { includeAdult = it })
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Idioma: ")
-                Button(onClick = { expandedLang = true }) { Text(language) }
-                DropdownMenu(expanded = expandedLang, onDismissRequest = { expandedLang = false }) {
-                    languages.forEach { lang ->
-                        DropdownMenuItem(onClick = {
-                            language = lang
-                            expandedLang = false
-                        }, text = { Text(lang) })
-                    }
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Región: ")
-                Button(onClick = { expandedRegion = true }) { Text(region.ifEmpty { "Seleccionar" }) }
-                DropdownMenu(expanded = expandedRegion, onDismissRequest = { expandedRegion = false }) {
-                    regions.forEach { reg ->
-                        DropdownMenuItem(onClick = {
-                            region = reg
-                            expandedRegion = false
-                        }, text = { Text(reg) })
-                    }
-                }
-            }
-            TextField(value = year, onValueChange = { year = it }, label = { Text("Año") })
-            TextField(value = primaryReleaseYear, onValueChange = { primaryReleaseYear = it }, label = { Text("Año de estreno") })
-            TextField(value = page, onValueChange = { page = it.filter { c -> c.isDigit() } }, label = { Text("Página") })
-            Button(onClick = {
-                onSearch(
-                    query,
-                    includeAdult,
-                    language,
-                    year,
-                    primaryReleaseYear,
-                    page.toIntOrNull() ?: 1,
-                    region
-                )
-            }) {
-                Text("Buscar")
             }
         }
     }
